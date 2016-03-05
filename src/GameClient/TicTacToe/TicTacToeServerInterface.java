@@ -6,7 +6,14 @@
 package GameClient.TicTacToe;
 
 import GameClient.Util.ServerClient;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.Inet4Address;
+import java.net.Socket;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -14,24 +21,60 @@ import java.net.Inet4Address;
  */
 public class TicTacToeServerInterface implements ServerClient{
 
+    private Socket socket;
+    private PrintWriter pw;
+    private BufferedReader br;
+    
+    public void set(int row, int col)
+    {
+        writeToServer(String.format("set{%d,%d}", row,col));
+    }
+    
+    public void quit()
+    {
+        writeToServer("quit{}");
+    }
+    
+    public void keepAlive()
+    {
+        writeToServer("keepAlive{}");
+    }
+    
     @Override
     public boolean connect(Inet4Address ip, int port) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        try {
+            socket = new Socket(ip, port);
+            pw = new PrintWriter(socket.getOutputStream());
+            br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            return true;
+        } catch (IOException ex) {
+            return false;
+        }
     }
 
     @Override
     public void writeToServer(Object o) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        pw.println(o.toString());
+        pw.flush();
     }
 
     @Override
     public Object listenToServer() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        try {
+            return br.readLine();
+        } catch (IOException ex) {
+            return null;
+        }
     }
 
     @Override
     public boolean disconnect() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        try {
+            socket.close();
+            return true;
+        } catch (IOException ex) {
+            return false;
+        }
     }
     
 }
